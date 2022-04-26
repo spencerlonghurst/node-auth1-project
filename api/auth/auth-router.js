@@ -60,7 +60,10 @@ router.post('/register', checkPasswordLength, checkUsernameFree, (req, res, next
   router.post('/login', checkUsernameExists, (req, res, next) => {
     const { password } = req.body
     if (bcrypt.compareSync(password, req.user.password)) {
-
+      //set the cookie on the client
+      //make it so the server stores a session with a session id
+      req.session.user = res.user
+      res.status(200).json({ message: `Welcome ${req.body.username}!` })
     } else {
       next({ status: 401, message: 'Invalid credentials' })
     }
@@ -82,7 +85,17 @@ router.post('/register', checkPasswordLength, checkUsernameFree, (req, res, next
   }
  */
   router.get('/logout', (req, res, next) => {
-    res.json('logout works')
+    if (req.session.user) {
+      req.session.destroy(err => {
+        if (err) {
+          next(err)
+        } else {
+          res.json({ message: "logged out" })
+        }
+      })
+    } else {
+      res.json({ message: "no session" })
+    }
   })
 
  
